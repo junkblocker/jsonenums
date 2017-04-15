@@ -68,5 +68,13 @@ func (r *{{$typename}}) UnmarshalJSON(data []byte) error {
     return nil
 }
 
+// String is generated so {{$typename}} satisfies fmt.Stringer.
+func (r {{$typename}}) String() string {
+    s, ok := _{{$typename}}ValueToName[r]
+    if !ok {
+        return fmt.Sprintf("{{$typename}}(%d)", r)
+    }
+    return s
+}
 {{end}}
 `))
