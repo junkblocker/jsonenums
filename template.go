@@ -76,5 +76,13 @@ func (r {{$typename}}) String() string {
     }
     return s
 }
+
+func (r {{$typename}}) Validate() error {
+    _, ok := _{{$typename}}ValueToName[r]
+    if !ok {
+        return fmt.Errorf("%d is not a valid {{$typename}}", r)
+    }
+    return nil
+}
 {{end}}
 `))
