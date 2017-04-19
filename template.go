@@ -14,75 +14,86 @@ var generatedTmpl = template.Must(template.New("generated").Parse(`
 package {{.PackageName}}
 
 import (
-    "encoding/json"
-    "fmt"
+	"encoding/json"
+	"fmt"
 )
 
 {{range $typename, $values := .TypesAndValues}}
 
 var (
-    _{{$typename}}NameToValue = map[string]{{$typename}} {
-        {{range $values}}"{{.}}": {{.}},
-        {{end}}
-    }
+	_{{$typename}}NameToValue = map[string]{{$typename}} {
+		{{range $values}}"{{.}}": {{.}},
+		{{end}}
+	}
 
-    _{{$typename}}ValueToName = map[{{$typename}}]string {
-        {{range $values}}{{.}}: "{{.}}",
-        {{end}}
-    }
+	_{{$typename}}ValueToName = map[{{$typename}}]string {
+		{{range $values}}{{.}}: "{{.}}",
+		{{end}}
+	}
 )
 
 func init() {
-    var v {{$typename}}
-    if _, ok := interface{}(v).(fmt.Stringer); ok {
-        _{{$typename}}NameToValue = map[string]{{$typename}} {
-            {{range $values}}interface{}({{.}}).(fmt.Stringer).String(): {{.}},
-            {{end}}
-        }
-    }
+	var v {{$typename}}
+	if _, ok := interface{}(v).(fmt.Stringer); ok {
+		_{{$typename}}NameToValue = map[string]{{$typename}} {
+			{{range $values}}interface{}({{.}}).(fmt.Stringer).String(): {{.}},
+			{{end}}
+		}
+	}
 }
 
 // MarshalJSON is generated so {{$typename}} satisfies json.Marshaler.
 func (r {{$typename}}) MarshalJSON() ([]byte, error) {
-    if s, ok := interface{}(r).(fmt.Stringer); ok {
-        return json.Marshal(s.String())
-    }
-    s, ok := _{{$typename}}ValueToName[r]
-    if !ok {
-        return nil, fmt.Errorf("invalid {{$typename}}: %d", r)
-    }
-    return json.Marshal(s)
+	if s, ok := interface{}(r).(fmt.Stringer); ok {
+		return json.Marshal(s.String())
+	}
+	s, ok := _{{$typename}}ValueToName[r]
+	if !ok {
+		return nil, fmt.Errorf("invalid {{$typename}}: %d", r)
+	}
+	return json.Marshal(s)
 }
 
 // UnmarshalJSON is generated so {{$typename}} satisfies json.Unmarshaler.
 func (r *{{$typename}}) UnmarshalJSON(data []byte) error {
-    var s string
-    if err := json.Unmarshal(data, &s); err != nil {
-        return fmt.Errorf("{{$typename}} should be a string, got %s", data)
-    }
-    v, ok := _{{$typename}}NameToValue[s]
-    if !ok {
-        return fmt.Errorf("invalid {{$typename}} %q", s)
-    }
-    *r = v
-    return nil
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return fmt.Errorf("{{$typename}} should be a string, got %s", data)
+	}
+	v, ok := _{{$typename}}NameToValue[s]
+	if !ok {
+		return fmt.Errorf("invalid {{$typename}} %q", s)
+	}
+	*r = v
+	return nil
 }
 
 // String is generated so {{$typename}} satisfies fmt.Stringer.
 func (r {{$typename}}) String() string {
-    s, ok := _{{$typename}}ValueToName[r]
-    if !ok {
-        return fmt.Sprintf("{{$typename}}(%d)", r)
-    }
-    return s
+	s, ok := _{{$typename}}ValueToName[r]
+	if !ok {
+		return fmt.Sprintf("{{$typename}}(%d)", r)
+	}
+	return s
+}
+
+// From creates a {{$typename}} from a given string.
+//
+// Return value must be checked to see if the conversion succeeded.
+func (f *{{$typename}}) From(s string) bool {
+	ret, ok := _{{$typename}}NameToValue[s]
+	if ok {
+		*f = ret
+	}
+	return ok
 }
 
 func (r {{$typename}}) Validate() error {
-    _, ok := _{{$typename}}ValueToName[r]
-    if !ok {
-        return fmt.Errorf("%d is not a valid {{$typename}}", r)
-    }
-    return nil
+	_, ok := _{{$typename}}ValueToName[r]
+	if !ok {
+		return fmt.Errorf("%d is not a valid {{$typename}}", r)
+	}
+	return nil
 }
 {{end}}
 `))
