@@ -58,7 +58,7 @@ func (r {{$typename}}) MarshalJSON() ([]byte, error) {
 func (r *{{$typename}}) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("{{$typename}} should be a string, got %s", data)
+		return fmt.Errorf("Passed data for {{$typename}} UnmarshalJSON should be a double quoted string, got %s: %v", data, err)
 	}
 	v, ok := _{{$typename}}NameToValue[s]
 	if !ok {
